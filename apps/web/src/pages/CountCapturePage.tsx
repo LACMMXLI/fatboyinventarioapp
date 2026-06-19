@@ -59,6 +59,20 @@ export function CountCapturePage() {
     setQuantities((prev) => ({ ...prev, [productId]: formatted }));
   };
 
+  const adjustQuantity = (productId: string, delta: number) => {
+    setQuantities((prev) => {
+      const currentValue = parseFloat(prev[productId] || '0');
+      const nextValue = Math.max(0, currentValue + delta);
+
+      return {
+        ...prev,
+        [productId]: Number.isInteger(nextValue)
+          ? String(nextValue)
+          : nextValue.toFixed(2).replace(/\.?0+$/, ''),
+      };
+    });
+  };
+
   const saveProgress = useCallback(async () => {
     if (!id) return;
     setSaving(true);
@@ -192,6 +206,15 @@ export function CountCapturePage() {
               <div className="product-row__unit">{product.unit}</div>
             </div>
             <div className="product-row__input">
+              <button
+                type="button"
+                className="quantity-stepper"
+                aria-label={`Reducir ${product.name}`}
+                onClick={() => adjustQuantity(product.id, -1)}
+                disabled={isFinalized || parseFloat(quantities[product.id] || '0') <= 0}
+              >
+                -
+              </button>
               <input
                 type="text"
                 inputMode="decimal"
@@ -203,6 +226,15 @@ export function CountCapturePage() {
                 }
                 disabled={isFinalized}
               />
+              <button
+                type="button"
+                className="quantity-stepper quantity-stepper--plus"
+                aria-label={`Aumentar ${product.name}`}
+                onClick={() => adjustQuantity(product.id, 1)}
+                disabled={isFinalized}
+              >
+                +
+              </button>
             </div>
           </div>
         ))}

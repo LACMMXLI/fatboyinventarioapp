@@ -601,7 +601,58 @@ img {
 }
 
 .product-row__input .form-input--numeric {
-  width: 90px;
+  width: 76px;
+}
+
+.quantity-stepper {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-family);
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.quantity-stepper--plus {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.quantity-stepper:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.quantity-stepper:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 420px) {
+  .product-row {
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+  }
+
+  .product-row__input .form-input--numeric {
+    width: 64px;
+  }
+
+  .quantity-stepper {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
 }
 
 /* --- Summary Table --- */
