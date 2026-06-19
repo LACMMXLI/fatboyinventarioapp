@@ -19,6 +19,7 @@ async function bootstrap() {
       : corsOrigin
           .split(',')
           .map((origin) => origin.trim())
+          .map((origin) => origin.replace(/\/$/, ''))
           .filter(Boolean);
 
   app.enableCors({
