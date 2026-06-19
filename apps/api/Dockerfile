@@ -6,6 +6,7 @@ WORKDIR /app
 # Archivos base del monorepo
 COPY package*.json ./
 COPY tsconfig.base.json ./
+COPY productos.md ./
 
 # Definiciones de los workspaces necesarios
 COPY packages/shared/package*.json ./packages/shared/
@@ -31,6 +32,7 @@ WORKDIR /app
 
 COPY package*.json ./
 COPY tsconfig.base.json ./
+COPY productos.md ./
 COPY packages/shared/package*.json ./packages/shared/
 COPY apps/api/package*.json ./apps/api/
 

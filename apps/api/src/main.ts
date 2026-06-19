@@ -4,8 +4,91 @@ import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { existsSync, readFileSync } from 'fs';
+import { resolve } from 'path';
 import { AppModule } from './app.module';
 import { User } from './modules/users/entities/user.entity';
+import { Branch } from './modules/branches/entities/branch.entity';
+import { ProductCategory } from './modules/categories/entities/product-category.entity';
+import { Product } from './modules/products/entities/product.entity';
+
+async function ensureInitialCatalog(dataSource: DataSource) {
+  const branchRepository = dataSource.getRepository(Branch);
+  const categoryRepository = dataSource.getRepository(ProductCategory);
+  const productRepository = dataSource.getRepository(Product);
+
+  for (const branchName of ['Venecia', 'San Marcos']) {
+    const existingBranch = await branchRepository.findOne({
+      where: { name: branchName },
+    });
+
+    if (!existingBranch) {
+      await branchRepository.save({ name: branchName, isActive: true });
+    }
+  }
+
+  const productsFilePath = resolve(process.cwd(), 'productos.md');
+  if (!existsSync(productsFilePath)) {
+    console.warn(`No se encontró productos.md en ${productsFilePath}.`);
+    return;
+  }
+
+  const lines = readFileSync(productsFilePath, 'utf-8').split('\n');
+  let currentCategory: ProductCategory | null = null;
+  let categorySortOrder = 10;
+  let productSortOrder = 10;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) {
+      continue;
+    }
+
+    if (line.startsWith('-')) {
+      if (!currentCategory) {
+        continue;
+      }
+
+      const productName = line.substring(1).trim();
+      const existingProduct = await productRepository.findOne({
+        where: {
+          name: productName,
+          categoryId: currentCategory.id,
+        },
+      });
+
+      if (!existingProduct) {
+        await productRepository.save({
+          name: productName,
+          categoryId: currentCategory.id,
+          unit: 'PZA',
+          sortOrder: productSortOrder,
+          isActive: true,
+        });
+      }
+
+      productSortOrder += 10;
+      continue;
+    }
+
+    const categoryName = line;
+    let category = await categoryRepository.findOne({
+      where: { name: categoryName },
+    });
+
+    if (!category) {
+      category = await categoryRepository.save({
+        name: categoryName,
+        sortOrder: categorySortOrder,
+        isActive: true,
+      });
+    }
+
+    currentCategory = category;
+    categorySortOrder += 10;
+    productSortOrder = 10;
+  }
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -78,6 +161,7 @@ async function bootstrap() {
       isActive: true,
     });
   }
+  await ensureInitialCatalog(dataSource);
 
   // Start
   const port = configService.get<number>('API_PORT', 3000);
