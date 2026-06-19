@@ -1,8 +1,28 @@
 import axios from 'axios';
 import { useAuthStore } from '../context/auth-store';
 
+const resolveApiBaseUrl = () => {
+  const configuredUrl = import.meta.env.VITE_API_URL?.trim();
+
+  if (!configuredUrl) {
+    return '/api';
+  }
+
+  try {
+    const parsedUrl = new URL(configuredUrl);
+    if (parsedUrl.pathname === '/' || parsedUrl.pathname === '') {
+      parsedUrl.pathname = '/api';
+      return parsedUrl.toString().replace(/\/$/, '');
+    }
+  } catch {
+    // Relative URLs such as /api are valid for Axios even if URL parsing fails.
+  }
+
+  return configuredUrl.replace(/\/$/, '');
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: resolveApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },

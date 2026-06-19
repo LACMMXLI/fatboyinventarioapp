@@ -12,9 +12,19 @@ async function bootstrap() {
   const prefix = configService.get<string>('API_PREFIX', 'api');
   app.setGlobalPrefix(prefix);
 
-  const corsOrigin = configService.get<string>('CORS_ORIGIN', '*');
+  const corsOrigin = configService.get<string>('CORS_ORIGIN', '*').trim();
+  const allowedOrigins =
+    corsOrigin === '*'
+      ? true
+      : corsOrigin
+          .split(',')
+          .map((origin) => origin.trim())
+          .filter(Boolean);
+
   app.enableCors({
-    origin: corsOrigin === '*' ? true : corsOrigin.split(','),
+    origin: allowedOrigins,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
 
