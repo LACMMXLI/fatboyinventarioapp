@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { productsApi, categoriesApi } from '../../api/client';
-import { ProductDto, CategoryDto } from '@inventarioapp/shared';
+import { productsApi, categoriesApi, productStoresApi } from '../../api/client';
+import { ProductDto, CategoryDto, ProductStoreDto } from '@inventarioapp/shared';
 
 export function AdminProductsPage() {
   const [products, setProducts] = useState<ProductDto[]>([]);
   const [categories, setCategories] = useState<CategoryDto[]>([]);
+  const [stores, setStores] = useState<ProductStoreDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -13,6 +14,7 @@ export function AdminProductsPage() {
   // Form state
   const [formName, setFormName] = useState('');
   const [formCategoryId, setFormCategoryId] = useState('');
+  const [formStoreId, setFormStoreId] = useState('');
   const [formUnit, setFormUnit] = useState('');
   const [formSortOrder, setFormSortOrder] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -23,12 +25,14 @@ export function AdminProductsPage() {
 
   const loadData = async () => {
     try {
-      const [prodRes, catRes] = await Promise.all([
+      const [prodRes, catRes, storeRes] = await Promise.all([
         productsApi.list({ limit: 200 }),
         categoriesApi.list(),
+        productStoresApi.list({ isActive: true }),
       ]);
       setProducts(prodRes.data?.data?.data ?? prodRes.data?.data ?? []);
       setCategories(catRes.data?.data ?? catRes.data ?? []);
+      setStores(storeRes.data?.data ?? storeRes.data ?? []);
     } catch (err) {
       toast.error('Error al cargar productos');
     } finally {
@@ -40,6 +44,7 @@ export function AdminProductsPage() {
     setEditingId(null);
     setFormName('');
     setFormCategoryId(categories[0]?.id || '');
+    setFormStoreId('');
     setFormUnit('pzas');
     setFormSortOrder(0);
     setShowForm(true);
@@ -49,6 +54,7 @@ export function AdminProductsPage() {
     setEditingId(product.id);
     setFormName(product.name);
     setFormCategoryId(product.categoryId);
+    setFormStoreId(product.storeId || '');
     setFormUnit(product.unit);
     setFormSortOrder(product.sortOrder);
     setShowForm(true);
@@ -65,6 +71,7 @@ export function AdminProductsPage() {
       const data = {
         name: formName,
         categoryId: formCategoryId,
+        storeId: formStoreId || null,
         unit: formUnit,
         sortOrder: formSortOrder,
       };
@@ -129,7 +136,7 @@ export function AdminProductsPage() {
             <div className="product-row__info" onClick={() => openEdit(product)} style={{ cursor: 'pointer' }}>
               <div className="product-row__name">{product.name}</div>
               <div className="product-row__unit">
-                {product.categoryName} · {product.unit}
+                {product.categoryName} · {product.storeName || 'Sin tienda'} · {product.unit}
               </div>
             </div>
             <button
@@ -178,6 +185,22 @@ export function AdminProductsPage() {
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Tienda</label>
+                <select
+                  className="form-select"
+                  value={formStoreId}
+                  onChange={(e) => setFormStoreId(e.target.value)}
+                >
+                  <option value="">Sin tienda asignada</option>
+                  {stores.map((store) => (
+                    <option key={store.id} value={store.id}>
+                      {store.name}
                     </option>
                   ))}
                 </select>

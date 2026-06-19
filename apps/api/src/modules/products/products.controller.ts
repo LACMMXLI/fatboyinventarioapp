@@ -27,11 +27,23 @@ export class ProductsController {
   @Get()
   findAll(
     @Query('categoryId') categoryId?: string,
+    @Query('storeId') storeId?: string,
     @Query('isActive') isActive?: boolean,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
-    return this.productsService.findAll({ categoryId, isActive, page, limit });
+    return this.productsService.findAll({
+      categoryId,
+      storeId,
+      isActive,
+      page,
+      limit,
+    });
+  }
+
+  @Get('by-store')
+  findByStore(@Query('isActive') isActive?: boolean) {
+    return this.productsService.findByStore(isActive ?? true);
   }
 
   @Get('by-category')

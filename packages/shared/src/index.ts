@@ -123,6 +123,33 @@ export interface UpdateCategoryRequest {
 }
 
 // ===========================
+// Product Store Types
+// ===========================
+
+export interface ProductStoreDto {
+  id: string;
+  name: string;
+  address: string | null;
+  phone: string | null;
+  isActive: boolean;
+  createdAt: string;
+  productCount?: number;
+}
+
+export interface CreateProductStoreRequest {
+  name: string;
+  address?: string;
+  phone?: string;
+}
+
+export interface UpdateProductStoreRequest {
+  name?: string;
+  address?: string;
+  phone?: string;
+  isActive?: boolean;
+}
+
+// ===========================
 // Product Types
 // ===========================
 
@@ -131,6 +158,8 @@ export interface ProductDto {
   name: string;
   categoryId: string;
   categoryName: string;
+  storeId: string | null;
+  storeName: string | null;
   unit: string;
   sortOrder: number;
   isActive: boolean;
@@ -139,6 +168,7 @@ export interface ProductDto {
 export interface CreateProductRequest {
   name: string;
   categoryId: string;
+  storeId?: string | null;
   unit: string;
   sortOrder?: number;
 }
@@ -146,6 +176,7 @@ export interface CreateProductRequest {
 export interface UpdateProductRequest {
   name?: string;
   categoryId?: string;
+  storeId?: string | null;
   unit?: string;
   sortOrder?: number;
   isActive?: boolean;
@@ -153,6 +184,11 @@ export interface UpdateProductRequest {
 
 export interface ProductsByCategory {
   category: CategoryDto;
+  products: ProductDto[];
+}
+
+export interface ProductsByStore {
+  store: ProductStoreDto | null;
   products: ProductDto[];
 }
 

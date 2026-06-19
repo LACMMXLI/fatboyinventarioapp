@@ -110,6 +110,7 @@ export function AdminDashboard() {
         >
           {[
             { icon: '📦', label: 'Productos', to: '/admin/products' },
+            { icon: '🏬', label: 'Tiendas', to: '/admin/stores' },
             { icon: '📂', label: 'Categorías', to: '/admin/categories' },
             { icon: '🏪', label: 'Sucursales', to: '/admin/branches' },
             { icon: '👥', label: 'Usuarios', to: '/admin/users' },

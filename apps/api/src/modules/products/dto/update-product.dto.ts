@@ -16,6 +16,10 @@ export class UpdateProductDto {
   @IsOptional()
   categoryId?: string;
 
+  @IsUUID('4', { message: 'ID de tienda inválido' })
+  @IsOptional()
+  storeId?: string | null;
+
   @IsString()
   @IsOptional()
   unit?: string;

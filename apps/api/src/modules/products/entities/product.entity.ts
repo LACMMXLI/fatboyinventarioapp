@@ -8,6 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { ProductCategory } from '../../categories/entities/product-category.entity';
+import { ProductStore } from '../../product-stores/entities/product-store.entity';
 
 @Entity('products')
 export class Product {
@@ -25,6 +26,17 @@ export class Product {
   })
   @JoinColumn({ name: 'category_id' })
   category: ProductCategory;
+
+  @Column({ type: 'uuid', name: 'store_id', nullable: true })
+  storeId: string | null;
+
+  @ManyToOne(() => ProductStore, (store) => store.products, {
+    nullable: true,
+    eager: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'store_id' })
+  store: ProductStore | null;
 
   @Column({ type: 'varchar', length: 50 })
   unit: string;

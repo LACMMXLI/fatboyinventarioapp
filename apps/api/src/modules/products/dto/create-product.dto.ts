@@ -16,6 +16,10 @@ export class CreateProductDto {
   @IsNotEmpty({ message: 'La categoría es requerida' })
   categoryId: string;
 
+  @IsUUID('4', { message: 'ID de tienda inválido' })
+  @IsOptional()
+  storeId?: string;
+
   @IsString()
   @IsNotEmpty({ message: 'La unidad de medida es requerida' })
   unit: string;

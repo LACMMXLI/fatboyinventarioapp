@@ -96,12 +96,26 @@ export const categoriesApi = {
 };
 
 // ===========================
+// Product Stores API
+// ===========================
+export const productStoresApi = {
+  list: (params?: Record<string, unknown>) =>
+    api.get('/product-stores', { params }),
+  getById: (id: string) => api.get(`/product-stores/${id}`),
+  create: (data: Record<string, unknown>) => api.post('/product-stores', data),
+  update: (id: string, data: Record<string, unknown>) =>
+    api.patch(`/product-stores/${id}`, data),
+};
+
+// ===========================
 // Products API
 // ===========================
 export const productsApi = {
   list: (params?: Record<string, unknown>) => api.get('/products', { params }),
   getByCategory: (isActive = true) =>
     api.get('/products/by-category', { params: { isActive } }),
+  getByStore: (isActive = true) =>
+    api.get('/products/by-store', { params: { isActive } }),
   getById: (id: string) => api.get(`/products/${id}`),
   create: (data: Record<string, unknown>) => api.post('/products', data),
   update: (id: string, data: Record<string, unknown>) =>

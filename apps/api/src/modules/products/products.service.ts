@@ -4,9 +4,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { ProductCategory } from '../categories/entities/product-category.entity';
+import { ProductStore } from '../product-stores/entities/product-store.entity';
 
 @Injectable()
 export class ProductsService {
@@ -15,21 +16,30 @@ export class ProductsService {
     private readonly productRepository: Repository<Product>,
     @InjectRepository(ProductCategory)
     private readonly categoryRepository: Repository<ProductCategory>,
+    @InjectRepository(ProductStore)
+    private readonly storeRepository: Repository<ProductStore>,
   ) {}
 
   async findAll(filters?: {
     categoryId?: string;
+    storeId?: string;
     isActive?: boolean;
     page?: number;
     limit?: number;
   }) {
     const query = this.productRepository
       .createQueryBuilder('product')
-      .leftJoinAndSelect('product.category', 'category');
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.store', 'store');
 
     if (filters?.categoryId) {
       query.andWhere('product.categoryId = :categoryId', {
         categoryId: filters.categoryId,
+      });
+    }
+    if (filters?.storeId) {
+      query.andWhere('product.storeId = :storeId', {
+        storeId: filters.storeId,
       });
     }
     if (filters?.isActive !== undefined) {
@@ -55,6 +65,49 @@ export class ProductsService {
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async findByStore(isActive = true) {
+    const stores = await this.storeRepository.find({
+      where: { isActive: true },
+      order: { name: 'ASC' },
+    });
+
+    const result = [];
+
+    for (const store of stores) {
+      const products = await this.productRepository.find({
+        where: { storeId: store.id, isActive },
+        order: { sortOrder: 'ASC', name: 'ASC' },
+      });
+
+      result.push({
+        store: {
+          id: store.id,
+          name: store.name,
+          address: store.address,
+          phone: store.phone,
+          isActive: store.isActive,
+          createdAt: store.createdAt,
+          productCount: products.length,
+        },
+        products: products.map((p) => this.toDto(p)),
+      });
+    }
+
+    const unassignedProducts = await this.productRepository.find({
+      where: { storeId: IsNull(), isActive },
+      order: { sortOrder: 'ASC', name: 'ASC' },
+    });
+
+    if (unassignedProducts.length > 0) {
+      result.push({
+        store: null,
+        products: unassignedProducts.map((p) => this.toDto(p)),
+      });
+    }
+
+    return result;
   }
 
   async findByCategory(isActive = true) {
@@ -90,7 +143,7 @@ export class ProductsService {
   async findById(id: string) {
     const product = await this.productRepository.findOne({
       where: { id },
-      relations: ['category'],
+      relations: ['category', 'store'],
     });
     if (!product) throw new NotFoundException('Producto no encontrado');
     return this.toDto(product);
@@ -99,6 +152,7 @@ export class ProductsService {
   async create(data: {
     name: string;
     categoryId: string;
+    storeId?: string | null;
     unit: string;
     sortOrder?: number;
   }) {
@@ -107,6 +161,12 @@ export class ProductsService {
       where: { id: data.categoryId },
     });
     if (!category) throw new NotFoundException('Categoría no encontrada');
+    if (data.storeId) {
+      const store = await this.storeRepository.findOne({
+        where: { id: data.storeId },
+      });
+      if (!store) throw new NotFoundException('Tienda no encontrada');
+    }
 
     // Check uniqueness within category
     const existing = await this.productRepository.findOne({
@@ -121,6 +181,7 @@ export class ProductsService {
     const product = this.productRepository.create({
       name: data.name.trim(),
       categoryId: data.categoryId,
+      storeId: data.storeId || null,
       unit: data.unit.trim(),
       sortOrder: data.sortOrder ?? 0,
     });
@@ -134,6 +195,7 @@ export class ProductsService {
     data: {
       name?: string;
       categoryId?: string;
+      storeId?: string | null;
       unit?: string;
       sortOrder?: number;
       isActive?: boolean;
@@ -149,6 +211,12 @@ export class ProductsService {
         where: { id: data.categoryId },
       });
       if (!category) throw new NotFoundException('Categoría no encontrada');
+    }
+    if (data.storeId) {
+      const store = await this.storeRepository.findOne({
+        where: { id: data.storeId },
+      });
+      if (!store) throw new NotFoundException('Tienda no encontrada');
     }
 
     // Check uniqueness if name or category changes
@@ -167,6 +235,7 @@ export class ProductsService {
 
     if (data.name !== undefined) product.name = data.name.trim();
     if (data.categoryId !== undefined) product.categoryId = data.categoryId;
+    if (data.storeId !== undefined) product.storeId = data.storeId || null;
     if (data.unit !== undefined) product.unit = data.unit.trim();
     if (data.sortOrder !== undefined) product.sortOrder = data.sortOrder;
     if (data.isActive !== undefined) product.isActive = data.isActive;
@@ -181,6 +250,8 @@ export class ProductsService {
       name: product.name,
       categoryId: product.categoryId,
       categoryName: product.category?.name ?? '',
+      storeId: product.storeId,
+      storeName: product.store?.name ?? null,
       unit: product.unit,
       sortOrder: product.sortOrder,
       isActive: product.isActive,

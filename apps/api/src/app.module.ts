@@ -6,6 +6,7 @@ import { UsersModule } from './modules/users/users.module';
 import { BranchesModule } from './modules/branches/branches.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { ProductsModule } from './modules/products/products.module';
+import { ProductStoresModule } from './modules/product-stores/product-stores.module';
 import { CountsModule } from './modules/counts/counts.module';
 import { ReportsModule } from './modules/reports/reports.module';
 
@@ -46,6 +47,7 @@ import { ReportsModule } from './modules/reports/reports.module';
     UsersModule,
     BranchesModule,
     CategoriesModule,
+    ProductStoresModule,
     ProductsModule,
     CountsModule,
     ReportsModule,

@@ -10,6 +10,7 @@ import { CountHistoryPage } from './pages/CountHistoryPage';
 import { AdminProductsPage } from './pages/admin/AdminProductsPage';
 import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage';
 import { AdminBranchesPage } from './pages/admin/AdminBranchesPage';
+import { AdminStoresPage } from './pages/admin/AdminStoresPage';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminReportsPage } from './pages/admin/AdminReportsPage';
 
@@ -42,6 +43,7 @@ function App() {
           {/* Admin - ADMIN only */}
           <Route element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]} />}>
             <Route path="/admin/products" element={<AdminProductsPage />} />
+            <Route path="/admin/stores" element={<AdminStoresPage />} />
             <Route path="/admin/categories" element={<AdminCategoriesPage />} />
             <Route path="/admin/branches" element={<AdminBranchesPage />} />
             <Route path="/admin/users" element={<AdminUsersPage />} />
