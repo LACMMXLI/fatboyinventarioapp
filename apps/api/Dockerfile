@@ -11,6 +11,7 @@ COPY productos.md ./
 # Definiciones de los workspaces necesarios
 COPY packages/shared/package*.json ./packages/shared/
 COPY apps/api/package*.json ./apps/api/
+COPY productos.md ./apps/api/productos.md
 
 # Instalación limpia
 RUN npm ci
@@ -35,6 +36,7 @@ COPY tsconfig.base.json ./
 COPY productos.md ./
 COPY packages/shared/package*.json ./packages/shared/
 COPY apps/api/package*.json ./apps/api/
+COPY productos.md ./apps/api/productos.md
 
 # Solo dependencias de producción
 RUN npm ci --omit=dev

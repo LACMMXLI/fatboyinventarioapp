@@ -12,6 +12,17 @@ import { Branch } from './modules/branches/entities/branch.entity';
 import { ProductCategory } from './modules/categories/entities/product-category.entity';
 import { Product } from './modules/products/entities/product.entity';
 
+function resolveProductsFilePath() {
+  const candidatePaths = [
+    resolve(process.cwd(), 'productos.md'),
+    resolve(process.cwd(), '../../productos.md'),
+    resolve(__dirname, '../../../productos.md'),
+    resolve(__dirname, '../productos.md'),
+  ];
+
+  return candidatePaths.find((filePath) => existsSync(filePath));
+}
+
 async function ensureInitialCatalog(dataSource: DataSource) {
   const branchRepository = dataSource.getRepository(Branch);
   const categoryRepository = dataSource.getRepository(ProductCategory);
@@ -27,9 +38,9 @@ async function ensureInitialCatalog(dataSource: DataSource) {
     }
   }
 
-  const productsFilePath = resolve(process.cwd(), 'productos.md');
-  if (!existsSync(productsFilePath)) {
-    console.warn(`No se encontró productos.md en ${productsFilePath}.`);
+  const productsFilePath = resolveProductsFilePath();
+  if (!productsFilePath) {
+    console.warn('No se encontró productos.md para cargar el catálogo inicial.');
     return;
   }
 
@@ -37,6 +48,8 @@ async function ensureInitialCatalog(dataSource: DataSource) {
   let currentCategory: ProductCategory | null = null;
   let categorySortOrder = 10;
   let productSortOrder = 10;
+  let addedCategories = 0;
+  let addedProducts = 0;
 
   for (const rawLine of lines) {
     const line = rawLine.trim();
@@ -65,6 +78,7 @@ async function ensureInitialCatalog(dataSource: DataSource) {
           sortOrder: productSortOrder,
           isActive: true,
         });
+        addedProducts += 1;
       }
 
       productSortOrder += 10;
@@ -82,12 +96,17 @@ async function ensureInitialCatalog(dataSource: DataSource) {
         sortOrder: categorySortOrder,
         isActive: true,
       });
+      addedCategories += 1;
     }
 
     currentCategory = category;
     categorySortOrder += 10;
     productSortOrder = 10;
   }
+
+  console.log(
+    `Catálogo inicial verificado desde ${productsFilePath}: ${addedCategories} categorías nuevas, ${addedProducts} productos nuevos.`,
+  );
 }
 
 async function bootstrap() {
