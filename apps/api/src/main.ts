@@ -42,7 +42,7 @@ async function bootstrap() {
 
   // Start
   const port = configService.get<number>('API_PORT', 3000);
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   console.log(`🚀 InventarioApp API running on http://localhost:${port}/${prefix}`);
   console.log(`📚 Swagger docs at http://localhost:${port}/docs`);
 }
