@@ -2,7 +2,10 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { DataSource } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { AppModule } from './app.module';
+import { User } from './modules/users/entities/user.entity';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -50,6 +53,31 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('docs', app, document);
+
+  const dataSource = app.get(DataSource);
+  const userRepository = dataSource.getRepository(User);
+  const adminEmail = 'admin@fatboy.com';
+  const adminPasswordHash = await bcrypt.hash('admin123', 10);
+  const existingAdmin = await userRepository.findOne({
+    where: { email: adminEmail },
+  });
+
+  if (existingAdmin) {
+    existingAdmin.passwordHash = adminPasswordHash;
+    existingAdmin.role = 'ADMIN' as User['role'];
+    existingAdmin.isActive = true;
+    existingAdmin.fullName = existingAdmin.fullName || 'Administrador Fatboy';
+    await userRepository.save(existingAdmin);
+  } else {
+    await userRepository.save({
+      email: adminEmail,
+      passwordHash: adminPasswordHash,
+      fullName: 'Administrador Fatboy',
+      role: 'ADMIN' as User['role'],
+      branchId: null,
+      isActive: true,
+    });
+  }
 
   // Start
   const port = configService.get<number>('API_PORT', 3000);
