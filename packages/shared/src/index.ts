@@ -43,6 +43,22 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  fullName: string;
+  role: typeof UserRole.ADMIN | typeof UserRole.ENCARGADO;
+  branchId?: string;
+  invitationCode: string;
+}
+
+export interface InvitationCodesDto {
+  adminInvitationCode: string;
+  encargadoInvitationCode: string;
+}
+
+export interface UpdateInvitationCodesRequest extends InvitationCodesDto {}
+
 // ===========================
 // User Types
 // ===========================

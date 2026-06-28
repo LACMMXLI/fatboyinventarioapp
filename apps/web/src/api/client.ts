@@ -57,6 +57,12 @@ export default api;
 export const authApi = {
   login: (email: string, password: string) =>
     api.post('/auth/login', { email, password }),
+  register: (data: Record<string, unknown>) =>
+    api.post('/auth/register', data),
+  registrationBranches: () => api.get('/auth/registration-branches'),
+  getInvitationCodes: () => api.get('/auth/invitation-codes'),
+  updateInvitationCodes: (data: Record<string, unknown>) =>
+    api.post('/auth/invitation-codes', data),
   getProfile: () => api.get('/auth/profile'),
   changePassword: (currentPassword: string, newPassword: string) =>
     api.post('/auth/change-password', { currentPassword, newPassword }),

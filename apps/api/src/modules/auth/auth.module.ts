@@ -7,6 +7,9 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { User } from '../users/entities/user.entity';
+import { UsersModule } from '../users/users.module';
+import { Branch } from '../branches/entities/branch.entity';
+import { InvitationSettings } from './entities/invitation-settings.entity';
 
 @Module({
   imports: [
@@ -21,7 +24,8 @@ import { User } from '../users/entities/user.entity';
         },
       }),
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Branch, InvitationSettings]),
+    UsersModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

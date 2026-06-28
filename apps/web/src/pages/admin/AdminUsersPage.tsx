@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { usersApi, branchesApi } from '../../api/client';
+import { usersApi, branchesApi, authApi } from '../../api/client';
 import { UserDto, BranchDto, UserRole } from '@inventarioapp/shared';
 
 export function AdminUsersPage() {
@@ -14,7 +14,10 @@ export function AdminUsersPage() {
   const [formFullName, setFormFullName] = useState('');
   const [formRole, setFormRole] = useState<UserRole>(UserRole.ENCARGADO);
   const [formBranchId, setFormBranchId] = useState('');
+  const [adminInvitationCode, setAdminInvitationCode] = useState('');
+  const [encargadoInvitationCode, setEncargadoInvitationCode] = useState('');
   const [saving, setSaving] = useState(false);
+  const [savingCodes, setSavingCodes] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
@@ -24,8 +27,12 @@ export function AdminUsersPage() {
         usersApi.list({ limit: 100 }),
         branchesApi.list({ isActive: true }),
       ]);
+      const codesRes = await authApi.getInvitationCodes();
       setUsers(usersRes.data?.data?.data ?? usersRes.data?.data ?? []);
       setBranches(branchesRes.data?.data ?? branchesRes.data ?? []);
+      const codes = codesRes.data?.data ?? codesRes.data;
+      setAdminInvitationCode(codes.adminInvitationCode ?? '');
+      setEncargadoInvitationCode(codes.encargadoInvitationCode ?? '');
     } catch { toast.error('Error al cargar'); }
     finally { setLoading(false); }
   };
@@ -70,6 +77,21 @@ export function AdminUsersPage() {
     } catch { toast.error('Error'); }
   };
 
+  const saveInvitationCodes = async () => {
+    setSavingCodes(true);
+    try {
+      const res = await authApi.updateInvitationCodes({
+        adminInvitationCode,
+        encargadoInvitationCode,
+      });
+      const codes = res.data?.data ?? res.data;
+      setAdminInvitationCode(codes.adminInvitationCode);
+      setEncargadoInvitationCode(codes.encargadoInvitationCode);
+      toast.success('Códigos actualizados');
+    } catch (err: any) { toast.error(err.response?.data?.message || 'Error al guardar códigos'); }
+    finally { setSavingCodes(false); }
+  };
+
   const roleLabel: Record<string, string> = {
     ADMIN: '👑 Admin', ENCARGADO: '📋 Encargado', CONSULTA: '👁 Consulta',
   };
@@ -85,6 +107,24 @@ export function AdminUsersPage() {
         <button className="btn btn--primary" onClick={openCreate} style={{ marginBottom: 'var(--space-lg)' }}>
           + Nuevo Usuario
         </button>
+        <div className="card" style={{ marginBottom: 'var(--space-lg)' }}>
+          <h2 style={{ fontSize: 'var(--font-size-lg)', marginBottom: 'var(--space-md)' }}>
+            Códigos de invitación
+          </h2>
+          <div style={{ display: 'grid', gap: 'var(--space-md)' }}>
+            <div className="form-group">
+              <label className="form-label">Administradores</label>
+              <input className="form-input" value={adminInvitationCode} onChange={(e) => setAdminInvitationCode(e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Encargados</label>
+              <input className="form-input" value={encargadoInvitationCode} onChange={(e) => setEncargadoInvitationCode(e.target.value)} />
+            </div>
+            <button className="btn btn--secondary" onClick={saveInvitationCodes} disabled={savingCodes}>
+              {savingCodes ? <span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> : 'Guardar códigos'}
+            </button>
+          </div>
+        </div>
         {users.map((u) => (
           <div key={u.id} className="product-row" style={{ opacity: u.isActive ? 1 : 0.5 }}>
             <div className="product-row__info" onClick={() => openEdit(u)} style={{ cursor: 'pointer' }}>
@@ -130,7 +170,6 @@ export function AdminUsersPage() {
                 <select className="form-select" value={formRole} onChange={(e) => setFormRole(e.target.value as UserRole)}>
                   <option value={UserRole.ENCARGADO}>Encargado</option>
                   <option value={UserRole.ADMIN}>Administrador</option>
-                  <option value={UserRole.CONSULTA}>Consulta</option>
                 </select>
               </div>
               <div className="form-group">
