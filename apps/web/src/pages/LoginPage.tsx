@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
 import type { InputHTMLAttributes } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -246,21 +246,19 @@ export function LoginPage() {
   );
 }
 
-function TextInput({
-  label,
-  error,
-  ...props
-}: InputHTMLAttributes<HTMLInputElement> & {
+const TextInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & {
   label: string;
   error?: string;
-}) {
+}>(({ label, error, ...props }, ref) => {
   return (
     <div className="form-group">
       <label htmlFor={props.id} className="form-label">
         {label}
       </label>
-      <input className={`form-input ${error ? 'form-input--error' : ''}`} {...props} />
+      <input ref={ref} className={`form-input ${error ? 'form-input--error' : ''}`} {...props} />
       {error && <span className="form-error">{error}</span>}
     </div>
   );
-}
+});
+
+TextInput.displayName = 'TextInput';
